@@ -5,6 +5,8 @@ import ai.djl.nn.*;
 import ai.djl.nn.core.*;
 import ai.djl.training.*;
 
+//Nueral Network Example
+
 public class Main {
     public static void main(String[] args) {
 
