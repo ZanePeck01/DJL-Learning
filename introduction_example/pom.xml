@@ -39,6 +39,7 @@
             <artifactId>mxnet-engine</artifactId>
             <version>0.28.0</version>
         </dependency>
+        
     </dependencies>
 
 </project>
