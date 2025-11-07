@@ -16,19 +16,32 @@ public class Model_running {
 
     public static void main(String[] args) throws Exception {
 
+        // ***** STEP 1: Load Image *****
+
+        // load image from URL
         var img = ImageFactory.getInstance().fromUrl("https://resources.djl.ai/images/0.png");
         img.getWrappedImage();
 
+        // ***** STEP 2: Load Model *****
+
+        // load trained saved model
         Path modelDir = Paths
                 .get("C:/Users/PC/OneDrive/Desktop/AI_Projects/DJL-Learning/introduction_example/build/mlp");
+        // create instance of model
         Model model = Model.newInstance("mlp");
 
+        // set nn architecture for input, output, and hidden layers
         model.setBlock(new Mlp(28 * 28, 10, new int[] { 128, 64 }));
-
+        // load model parameters from directory
         model.load(modelDir);
 
+        // ***** STEP 3: Create Translator *****
+
+        // translator handles preprocessing of input image and postprocessing of model
+        // output
         Translator<Image, Classifications> translator = new Translator<Image, Classifications>() {
 
+            // preprocess input image (turn intput into NDArray tensor)
             @Override
             public NDList processInput(TranslatorContext ctx, Image input) {
                 NDArray array = input.toNDArray(ctx.getNDManager(), Image.Flag.GRAYSCALE);
@@ -36,6 +49,8 @@ public class Model_running {
                 return new NDList(NDImageUtils.toTensor(array));
             }
 
+            // postprocess model output (turn output NDArray tensor into Classifications
+            // object)
             @Override
             public Classifications processOutput(TranslatorContext ctx, NDList list) {
                 NDArray probabilities = list.singletonOrThrow().softmax(0);
@@ -47,14 +62,21 @@ public class Model_running {
                 return new Classifications(classNames, probabilities);
             }
 
+            // specify how to batch inputs and outputs
             @Override
             public Batchifier getBatchifier() {
                 return Batchifier.STACK;
             }
         };
 
+        // ***** STEP 4: Create Predictor *****S
+
+        // predictor uses model and translator to perform inference
         var predictor = model.newPredictor(translator);
 
+        // ***** STEP 5: Run Inference and Make Prediction *****
+
+        // use predictor to classify input image
         var classifications = predictor.predict(img);
 
         System.out.println(classifications);
