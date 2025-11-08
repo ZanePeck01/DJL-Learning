@@ -18,9 +18,36 @@ public class Model_running {
 
         // ***** STEP 1: Load Image *****
 
-        // load image from URL
-        var img = ImageFactory.getInstance().fromUrl("https://resources.djl.ai/images/0.png");
-        img.getWrappedImage();
+        // // **** load image from URL ****
+        // // how to load a single image from URL
+        // var img =
+        // ImageFactory.getInstance().fromUrl("https://resources.djl.ai/images/0.png");
+        // img.getWrappedImage();
+
+        // **** loading all images from a folder via batching *****
+        Path imageDir = Paths.get(
+                "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\images\\numbers_MNIST\\");
+
+        // get all image files from the directory
+        // filters for .png, .jpg, .jpeg files
+        List<Path> imagePaths = Files.walk(imageDir)
+                .filter(Files::isRegularFile) // makes sure to only get files, not directories
+                .filter(path -> {
+                    String fileName = path.getFileName().toString().toLowerCase();
+                    return fileName.endsWith(".png") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg");
+                })
+                .collect(Collectors.toList());
+
+        List<Image> images = new ArrayList<>();
+        List<String> imageFileNames = new ArrayList<>();
+
+        // load each image file into an Image object
+        for (Path imagePath : imagePaths) {
+            // load images from file path
+            Image img = ImageFactory.getInstance().fromFile(imagePath);
+            images.add(img);
+            imageFileNames.add(imagePath.getFileName().toString());
+        }
 
         // ***** STEP 2: Load Model *****
 
@@ -76,10 +103,18 @@ public class Model_running {
 
         // ***** STEP 5: Run Inference and Make Prediction *****
 
-        // use predictor to classify input image
-        var classifications = predictor.predict(img);
+        // // use predictor to classify input image (for single image)
+        // var classifications = predictor.predict(img);
+        // System.out.println(classifications);
 
-        System.out.println(classifications);
+        // for multiple images via batching
+        List<Classifications> batchResults = predictor.batchPredict(images);
+
+        // print out results for each image
+        for (int i = 0; i < batchResults.size(); i++) {
+            System.out.println("Image: " + imageFileNames.get(i));
+            System.out.println(batchResults.get(i));
+        }
 
         /*
          * Example output:
