@@ -4,3 +4,4 @@ My introduction to learning and working with machine learning and deep learning 
 ## 1. introduction_example
    - First introduction
    - Learned how to create a basic model, train the model, then run the model
+   - can run model on single images or on multiple images at once via batching
