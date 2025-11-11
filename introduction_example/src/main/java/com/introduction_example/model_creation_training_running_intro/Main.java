@@ -1,4 +1,4 @@
-package com.introduction_example;
+package com.introduction_example.model_creation_training_running_intro;
 
 import ai.djl.*;
 import ai.djl.nn.*;
