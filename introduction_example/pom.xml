@@ -34,11 +34,22 @@
             <artifactId>model-zoo</artifactId>
             <version>0.28.0</version>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>ai.djl.mxnet</groupId>
             <artifactId>mxnet-engine</artifactId>
             <version>0.28.0</version>
+        </dependency> -->
+        <dependency>
+            <groupId>ai.djl.pytorch</groupId>
+            <artifactId>pytorch-engine</artifactId>
+            <version>0.28.0</version>
         </dependency>
+        <dependency>
+            <groupId>ai.djl.pytorch</groupId>
+            <artifactId>pytorch-model-zoo</artifactId>
+            <version>0.28.0</version>
+        </dependency>
+
         
     </dependencies>
 
