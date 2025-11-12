@@ -45,25 +45,6 @@ public class rottenfruit_classification {
         public static void main(String[] args)
                         throws ModelNotFoundException, MalformedModelException, IOException, TranslateException {
 
-                // // Check what nvidia-smi shows
-                // System.out.println("=== GPU Detection ===");
-
-                // Engine engine = Engine.getInstance();
-                // System.out.println("Engine: " + engine.getEngineName());
-                // System.out.println("Version: " + engine.getVersion());
-                // System.out.println("GPU Count: " + engine.getGpuCount());
-
-                // if (engine.getGpuCount() > 0) {
-                // System.out.println("✓ GPU Detected!");
-                // System.out.println("Devices: " + engine.getDevices());
-                // } else {
-                // System.out.println("✗ No GPU - Running on CPU");
-                // System.out.println("This is normal on first run while downloading CUDA
-                // libraries...");
-                // }
-
-                // System.out.println("\n=== Starting Training ===\n");
-
                 String modelUrl = "djl://ai.djl.pytorch/resnet18_embedding";
 
                 Criteria<NDList, NDList> criteria = Criteria.builder()
@@ -96,6 +77,7 @@ public class rottenfruit_classification {
                 for (Pair<String, Parameter> paramPair : baseBlock.getParameters()) {
                         learningRateTrackerBuilder.put(paramPair.getValue().getId(), 0.5f * lr);
                 }
+
                 FixedPerVarTracker learningRateTracker = learningRateTrackerBuilder.build();
                 Optimizer optimizer = Adam.builder().optLearningRateTracker(learningRateTracker).build();
                 config.optOptimizer(optimizer);
@@ -108,7 +90,7 @@ public class rottenfruit_classification {
 
                 RandomAccessDataset dataSetTrain = getData("train", batchSize);
                 RandomAccessDataset dataSetValidate = getData("test", batchSize);
-                int numEpoch = 15;
+                int numEpoch = 10;
 
                 String SAVE_PATH = "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\build\\fruits";
                 EasyTrain.fit(trainer, numEpoch, dataSetTrain, dataSetValidate);
@@ -173,8 +155,7 @@ public class rottenfruit_classification {
                                         .addTransform(new Normalize(mean, std));
                 }
 
-                builder.addTargetTransform(new OneHot(6))
-                                .setSampling(batchSize, true);
+                builder.setSampling(batchSize, true);
 
                 FruitsFreshAndRotten dataset = builder.build();
                 dataset.prepare();
