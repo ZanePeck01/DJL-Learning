@@ -11,54 +11,68 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <djl.version>0.21.0</djl.version>
+        <pytorch.version>1.13.1</pytorch.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>ai.djl</groupId>
+                <artifactId>bom</artifactId>
+                <version>${djl.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
+        <!-- DJL Core -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>api</artifactId>
-            <version>0.28.0</version>
         </dependency>
+        
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.36</version>
         </dependency>
+        
+        <!-- Basic Dataset -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>basicdataset</artifactId>
-            <version>0.28.0</version>
         </dependency>
+        
+        <!-- Model Zoo -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>model-zoo</artifactId>
-            <version>0.28.0</version>
         </dependency>
-        <!-- <dependency>
-            <groupId>ai.djl.mxnet</groupId>
-            <artifactId>mxnet-engine</artifactId>
-            <version>0.28.0</version>
-        </dependency> -->
+        
+        <!-- PyTorch Engine -->
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
             <artifactId>pytorch-engine</artifactId>
-            <version>0.28.0</version>
         </dependency>
+        
+        <!-- PyTorch Model Zoo -->
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
             <artifactId>pytorch-model-zoo</artifactId>
-            <version>0.28.0</version>
         </dependency>
+        
+        <!-- PyTorch Native with CPU -->
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-native-cu118</artifactId>
+            <artifactId>pytorch-native-cpu</artifactId>
+            <version>1.13.1</version>
             <classifier>win-x86_64</classifier>
             <scope>runtime</scope>
-            <version>2.0.1</version>
         </dependency>
-
-
-        
     </dependencies>
 
 </project>
