@@ -42,105 +42,143 @@ import ai.djl.training.evaluator.Accuracy;
 
 public class rottenfruit_classification {
 
-    public static void main(String[] args)
-            throws ModelNotFoundException, MalformedModelException, IOException, TranslateException {
+        public static void main(String[] args)
+                        throws ModelNotFoundException, MalformedModelException, IOException, TranslateException {
 
-        String modelUrl = "djl://ai.djl.pytorch/resnet18_embedding";
+                // // Check what nvidia-smi shows
+                // System.out.println("=== GPU Detection ===");
 
-        Criteria<NDList, NDList> criteria = Criteria.builder()
-                .setTypes(NDList.class, NDList.class)
-                .optModelUrls(modelUrl)
-                .optEngine("PyTorch") // Use PyTorch engine
-                .optProgress(new ProgressBar())
-                .optOption("trainParam", "true") // change to false to freeze the embedding
-                .build();
+                // Engine engine = Engine.getInstance();
+                // System.out.println("Engine: " + engine.getEngineName());
+                // System.out.println("Version: " + engine.getVersion());
+                // System.out.println("GPU Count: " + engine.getGpuCount());
 
-        ZooModel<NDList, NDList> embedding = criteria.loadModel();
+                // if (engine.getGpuCount() > 0) {
+                // System.out.println("✓ GPU Detected!");
+                // System.out.println("Devices: " + engine.getDevices());
+                // } else {
+                // System.out.println("✗ No GPU - Running on CPU");
+                // System.out.println("This is normal on first run while downloading CUDA
+                // libraries...");
+                // }
 
-        Block baseBlock = embedding.getBlock();
+                // System.out.println("\n=== Starting Training ===\n");
 
-        Block blocks = new SequentialBlock()
-                .add(baseBlock)
-                .addSingleton(nd -> nd.squeeze(new int[] { 2, 3 }))
-                .add(Linear.builder().setUnits(6).build())
-                .addSingleton(nd -> nd.softmax(1));
+                String modelUrl = "djl://ai.djl.pytorch/resnet18_embedding";
 
-        Model model = Model.newInstance("TransferLearning_RottenFruit");
+                Criteria<NDList, NDList> criteria = Criteria.builder()
+                                .setTypes(NDList.class, NDList.class)
+                                .optModelUrls(modelUrl)
+                                .optEngine("PyTorch") // Use PyTorch engine
+                                .optProgress(new ProgressBar())
+                                .optOption("trainParam", "true") // change to false to freeze the embedding
+                                .build();
 
-        model.setBlock(blocks);
+                ZooModel<NDList, NDList> embedding = criteria.loadModel();
 
-        DefaultTrainingConfig config = setupTrainingConfig(baseBlock);
+                Block baseBlock = embedding.getBlock();
 
-        float lr = 0.001f;
+                Block blocks = new SequentialBlock()
+                                .add(baseBlock)
+                                .addSingleton(nd -> nd.squeeze(new int[] { 2, 3 }))
+                                .add(Linear.builder().setUnits(6).build());
 
-        FixedPerVarTracker.Builder learningRateTrackerBuilder = FixedPerVarTracker.builder().setDefaultValue(lr);
-        for (Pair<String, Parameter> paramPair : baseBlock.getParameters()) {
-            learningRateTrackerBuilder.put(paramPair.getValue().getId(), 0.1f * lr);
+                Model model = Model.newInstance("TransferLearning_RottenFruit");
+
+                model.setBlock(blocks);
+
+                DefaultTrainingConfig config = setupTrainingConfig(baseBlock);
+
+                float lr = 0.001f;
+
+                FixedPerVarTracker.Builder learningRateTrackerBuilder = FixedPerVarTracker.builder()
+                                .setDefaultValue(lr);
+                for (Pair<String, Parameter> paramPair : baseBlock.getParameters()) {
+                        learningRateTrackerBuilder.put(paramPair.getValue().getId(), 0.5f * lr);
+                }
+                FixedPerVarTracker learningRateTracker = learningRateTrackerBuilder.build();
+                Optimizer optimizer = Adam.builder().optLearningRateTracker(learningRateTracker).build();
+                config.optOptimizer(optimizer);
+
+                Trainer trainer = model.newTrainer(config);
+
+                int batchSize = 32;
+                Shape inputShape = new Shape(batchSize, 3, 224, 224);
+                trainer.initialize(inputShape);
+
+                RandomAccessDataset dataSetTrain = getData("train", batchSize);
+                RandomAccessDataset dataSetValidate = getData("test", batchSize);
+                int numEpoch = 15;
+
+                String SAVE_PATH = "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\build\\fruits";
+                EasyTrain.fit(trainer, numEpoch, dataSetTrain, dataSetValidate);
+
+                ai.djl.training.TrainingResult result = trainer.getTrainingResult();
+                System.out.println("Final Training Loss: " + result.getTrainLoss());
+                System.out.println("Final Validation Loss: " + result.getValidateLoss());
+                System.out.println("Final Validation Accuracy: " + result.getValidateEvaluation("Accuracy"));
+
+                model.save(Paths.get(SAVE_PATH), "rotten_fruit_classifier");
+
+                model.close();
+                embedding.close();
+
         }
-        FixedPerVarTracker learningRateTracker = learningRateTrackerBuilder.build();
-        Optimizer optimizer = Adam.builder().optLearningRateTracker(learningRateTracker).build();
-        config.optOptimizer(optimizer);
 
-        Trainer trainer = model.newTrainer(config);
+        private static DefaultTrainingConfig setupTrainingConfig(Block baseBlock) {
+                String outputDir = "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\build\\fruits";
+                SaveModelTrainingListener listener = new SaveModelTrainingListener(outputDir);
+                listener.setSaveModelCallback((ai.djl.training.Trainer trainer) -> {
+                        ai.djl.training.TrainingResult result = trainer.getTrainingResult();
+                        Model model = trainer.getModel();
+                        float accuracy = result.getValidateEvaluation("Accuracy");
+                        model.setProperty("Accuracy", String.format("%.5f", accuracy));
+                        model.setProperty("Loss", String.format("%.5f", result.getValidateLoss()));
+                });
 
-        int batchSize = 64;
-        Shape inputShape = new Shape(batchSize, 3, 224, 224);
-        trainer.initialize(inputShape);
+                DefaultTrainingConfig config = new DefaultTrainingConfig(Loss.softmaxCrossEntropyLoss())
+                                .addEvaluator(new Accuracy())
+                                // Change from getDevices(1) to getDevices() to use all available GPUs
+                                // Or keep getDevices(1) to use 1 GPU
+                                .optDevices(Engine.getInstance().getDevices(1)) // Uses 1 GPU
+                                .addTrainingListeners(TrainingListener.Defaults.logging(outputDir))
+                                .addTrainingListeners(listener);
+                return config;
+        }
 
-        RandomAccessDataset dataSetTrain = getData("train", batchSize);
-        RandomAccessDataset dataSetValidate = getData("test", batchSize);
-        int numEpoch = 2;
-        String SAVE_PATH = "build/fruits_model";
+        private static RandomAccessDataset getData(String usage, int batchSize) throws TranslateException, IOException {
+                float[] mean = { 0.485f, 0.456f, 0.406f };
+                float[] std = { 0.229f, 0.224f, 0.225f };
 
-        EasyTrain.fit(trainer, numEpoch, dataSetTrain, dataSetValidate);
-        model.save(Paths.get(SAVE_PATH), "rotten_fruit_classifier");
+                Repository repository = Repository.newInstance("fruit", Paths.get(
+                                "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\images\\rotten_fresh_fruit\\dataset\\"
+                                                + usage));
 
-        model.close();
-        embedding.close();
+                FruitsFreshAndRotten.Builder builder = FruitsFreshAndRotten.builder()
+                                .optRepository(repository);
 
-    }
+                if (usage.equals("train")) {
+                        // Apply augmentations BEFORE ToTensor (while still in HWC format)
+                        builder.addTransform(new Resize(256, 256))
+                                        .addTransform(new RandomResizedCrop(224, 224)) // Moved before ToTensor
+                                        .addTransform(new RandomFlipTopBottom()) // Moved before ToTensor
+                                        .addTransform(new RandomFlipLeftRight()) // Moved before ToTensor
+                                        .addTransform(new ToTensor()) // Now convert to CHW
+                                        .addTransform(new Normalize(mean, std));
+                } else {
+                        // For validation/test: simple resize and crop
+                        builder.addTransform(new Resize(256, 256))
+                                        .addTransform(new CenterCrop(224, 224))
+                                        .addTransform(new ToTensor())
+                                        .addTransform(new Normalize(mean, std));
+                }
 
-    private static DefaultTrainingConfig setupTrainingConfig(Block baseBlock) {
-        String outputDir = "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\build\\fruits";
-        SaveModelTrainingListener listener = new SaveModelTrainingListener(outputDir);
-        listener.setSaveModelCallback((ai.djl.training.Trainer trainer) -> {
-            ai.djl.training.TrainingResult result = trainer.getTrainingResult();
-            Model model = trainer.getModel();
-            float accuracy = result.getValidateEvaluation("Accuracy");
-            model.setProperty("Accuracy", String.format("%.5f", accuracy));
-            model.setProperty("Loss", String.format("%.5f", result.getValidateLoss()));
-        });
+                builder.addTargetTransform(new OneHot(6))
+                                .setSampling(batchSize, true);
 
-        DefaultTrainingConfig config = new DefaultTrainingConfig(Loss.softmaxCrossEntropyLoss())
-                .addEvaluator(new Accuracy())
-                .optDevices(Engine.getEngine("PyTorch").getDevices(1))
-                .addTrainingListeners(TrainingListener.Defaults.logging(outputDir))
-                .addTrainingListeners(listener);
-        return config;
-    }
-
-    private static RandomAccessDataset getData(String usage, int batchSize) throws TranslateException, IOException {
-        float[] mean = { 0.485f, 0.456f, 0.406f };
-        float[] std = { 0.229f, 0.224f, 0.225f };
-
-        // usage is either "train" or "test"
-        Repository repository = Repository.newInstance("fruit", Paths.get(
-                "C:\\Users\\PC\\OneDrive\\Desktop\\AI_Projects\\DJL-Learning\\introduction_example\\images\\rotten_fresh_fruit\\dataset\\"
-                        + usage));
-        FruitsFreshAndRotten dataset = FruitsFreshAndRotten.builder()
-                .optRepository(repository)
-                .addTransform(new RandomResizedCrop(256, 256)) // only in training
-                .addTransform(new RandomFlipTopBottom()) // only in training
-                .addTransform(new RandomFlipLeftRight()) // only in training
-                .addTransform(new Resize(256, 256))
-                .addTransform(new CenterCrop(224, 224))
-                .addTransform(new ToTensor())
-                .addTransform(new Normalize(mean, std))
-                .addTargetTransform(new OneHot(6))
-                .setSampling(batchSize, true)
-                .build();
-        dataset.prepare();
-        return dataset;
-    }
+                FruitsFreshAndRotten dataset = builder.build();
+                dataset.prepare();
+                return dataset;
+        }
 
 }
