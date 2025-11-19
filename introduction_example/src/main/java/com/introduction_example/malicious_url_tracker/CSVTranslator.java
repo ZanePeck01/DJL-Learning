@@ -46,12 +46,8 @@ public class CSVTranslator implements Translator<String, Classifications> {
     }
 
     /**
-     * processInput encodes the input URL string to a [70, 1014] NDArray
+     * processInput encodes the input URL string to a [69, 1014] NDArray
      * Works like the training data encoder
-     *
-     * @param ctx context of the translator
-     * @param url the input URL string
-     * @return NDList containing the encoded URL
      */
     @Override
     public NDList processInput(TranslatorContext ctx, String url) {
@@ -75,10 +71,6 @@ public class CSVTranslator implements Translator<String, Classifications> {
 
     /**
      * Converts the output NDArray (classification logits) to Classifications object
-     *
-     * @param ctx  context of the translator
-     * @param list NDList of prediction output
-     * @return Classifications object with probabilities
      */
     @Override
     public Classifications processOutput(TranslatorContext ctx, NDList list) {
