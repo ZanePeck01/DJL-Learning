@@ -65,8 +65,8 @@ public class TrainMaliciousURLDetector {
             try (Trainer trainer = model.newTrainer(trainingConfig)) {
 
                 // Initialize the parameters, pass shape of input
-                // Input shape: [batch_size, alphabet_size=70, sequence_length=1014]
-                Shape inputShape = new Shape(batchSize, 70, 1014);
+                // Input shape: [batch_size, alphabet_size=69, sequence_length=1014]
+                Shape inputShape = new Shape(batchSize, 69, 1014);
                 trainer.initialize(inputShape);
 
                 System.out.println("Input shape: " + inputShape);
