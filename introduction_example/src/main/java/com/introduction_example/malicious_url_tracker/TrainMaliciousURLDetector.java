@@ -20,8 +20,9 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
- * Complete training example for Malicious URL Detection
- * Fixed and corrected version with proper DJL API usage
+ * TrainMaliciousURLDetector
+ * 
+ * Main class to train a Malicious URL Detector model using a CSV dataset
  */
 public class TrainMaliciousURLDetector {
 
@@ -118,10 +119,6 @@ public class TrainMaliciousURLDetector {
 
     /**
      * Setup training configuration with optimizer, loss, and evaluators
-     * 
-     * @param batchSize   the batch size
-     * @param datasetSize the total size of training dataset
-     * @return configured DefaultTrainingConfig
      */
     private static DefaultTrainingConfig setupTrainingConfig(int batchSize, long datasetSize) {
         // Learning Rate definition
@@ -186,7 +183,7 @@ public class TrainMaliciousURLDetector {
 
         // Train
         try (Trainer trainer = model.newTrainer(config)) {
-            trainer.initialize(new Shape(batchSize, 70, 1014));
+            trainer.initialize(new Shape(batchSize, 69, 1014));
 
             // Use EasyTrain for simple training loop
             EasyTrain.fit(trainer, epochs, trainDataset, validateDataset);
