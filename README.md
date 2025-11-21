@@ -12,5 +12,6 @@ My introduction to learning and working with machine learning and deep learning 
    - Learning how to utilize a pre-trained model on new never seen data
    - Image classification
 ### malicious_url_tracker
+   - CNN model to take a CSV dataset of malicious URLs and classify them as 0 (good) or 1 (malicious)
    - Introduction into writing custom code to intake a custome dataset
    - Using a Convolutional Neural Network (CNN) to classify malicious URLs
