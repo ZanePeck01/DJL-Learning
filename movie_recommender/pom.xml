@@ -11,8 +11,7 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-        <djl.version>0.28.0</djl.version>
-        <pytorch.version>1.13.1</pytorch.version>
+        <djl.version>0.34.0</djl.version> 
     </properties>
 
     <dependencyManagement>
@@ -33,46 +32,37 @@
             <groupId>ai.djl</groupId>
             <artifactId>api</artifactId>
         </dependency>
-        
-        <!-- Logging -->
+
+        <!-- Logging (explicit version – not managed by DJL BOM) -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
             <version>1.7.36</version>
         </dependency>
-        
-        <!-- Basic Dataset -->
+
+        <!-- Optional: Basic Dataset Utils (for CSV/Tabular data like MovieLens) -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>basicdataset</artifactId>
         </dependency>
-        
-        <!-- Model Zoo -->
+
+        <!-- Optional: Model Zoo (for pretrained models) -->
         <dependency>
             <groupId>ai.djl</groupId>
             <artifactId>model-zoo</artifactId>
         </dependency>
-        
-        <!-- PyTorch Engine -->
+
+        <!-- PyTorch Engine (handles auto-download of PyTorch 2.7.1 natives) -->
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
             <artifactId>pytorch-engine</artifactId>
+            <scope>runtime</scope>
         </dependency>
-        
-        <!-- PyTorch Model Zoo -->
+
+        <!-- PyTorch Model Zoo (optional, for pretrained PyTorch models) -->
         <dependency>
             <groupId>ai.djl.pytorch</groupId>
             <artifactId>pytorch-model-zoo</artifactId>
         </dependency>
-        
-        <!-- PyTorch Native with CPU -->
-        <dependency>
-            <groupId>ai.djl.pytorch</groupId>
-            <artifactId>pytorch-native-cpu</artifactId>
-            <version>1.13.1</version>
-            <classifier>win-x86_64</classifier>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
-
 </project>
