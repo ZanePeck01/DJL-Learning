@@ -15,3 +15,5 @@ My introduction to learning and working with machine learning and deep learning 
    - CNN model to take a CSV dataset of malicious URLs and classify them as 0 (good) or 1 (malicious)
    - Introduction into writing custom code to intake a custome dataset
    - Using a Convolutional Neural Network (CNN) to classify malicious URLs
+
+## 2. movie_recommender
