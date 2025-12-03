@@ -17,3 +17,5 @@ My introduction to learning and working with machine learning and deep learning 
    - Using a Convolutional Neural Network (CNN) to classify malicious URLs
 
 ## 2. movie_recommender
+   - Uses the MovieLens 9000 dataset, includes movies from 1996 to 2018 - movies include rating (0-5 stars) and genre
+   - App recommends top 25 movies based on the genre user inputs
